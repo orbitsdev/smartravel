@@ -38,6 +38,8 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   gap: ^3.0.1
   dio: ^5.8.0+1
+  flutter_animate: ^4.5.2
+  heroicons: ^0.11.0
 
 dev_dependencies:
   flutter_test:
