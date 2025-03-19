@@ -40,6 +40,15 @@ dependencies:
   dio: ^5.8.0+1
   flutter_animate: ^4.5.2
   heroicons: ^0.11.0
+  google_maps_flutter: ^2.11.0
+  geolocator: ^13.0.3
+  flutter_native_splash: ^2.4.5
+
+flutter_native_splash:
+  color: "#fa1b1b"  # 🔴 Set red background color
+  android_12:
+    color: "#fa1b1b"
+  fullscreen: true
 
 dev_dependencies:
   flutter_test:
@@ -64,8 +73,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/images/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
