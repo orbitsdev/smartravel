@@ -29,7 +29,8 @@ class _RenderPageState extends State<RenderPage> {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                Get.to(() => const LocationPage(), transition: Transition.cupertino);
+                // Get.to(() => const LocationPage(), transition: Transition.cupertino);
+                Get.toNamed('location',);
               },
               child: Container(
                 padding: const EdgeInsets.all(12),
