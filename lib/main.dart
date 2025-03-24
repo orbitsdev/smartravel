@@ -7,12 +7,19 @@ import 'package:smarttravel/pages/location_page.dart';
 import 'package:smarttravel/pages/render_page.dart';
 import 'package:smarttravel/plugins/getx/app_binding.dart';
 import 'package:smarttravel/plugins/getx/controller/device_controller.dart';
-import 'package:smarttravel/plugins/getx/middleware/device_middleware.dart';
+import 'package:smarttravel/plugins/getx/middleware/not_registered_device_middleware.dart';
+import 'package:smarttravel/plugins/getx/middleware/registered_device_middleware.dart';
 import 'package:smarttravel/plugins/sharepreference/shared_preferences_manager.dart';
 
 Future<void> main() async {
+
+   WidgetsFlutterBinding.ensureInitialized(); // required for prefs
   await dotenv.load(fileName: ".env");
+  await SharedPreferencesManager.init(); // ✅ initialize prefs early
   AppBinding().dependencies();
+
+  final deviceController = Get.find<DeviceController>();
+  await deviceController.checkDeviceFromApi();  // Check device registration
 
   runApp(const SmartTravelApp());
 }
@@ -32,9 +39,8 @@ class _SmartTravelAppState extends State<SmartTravelApp> {
   }
 
   Future<void> initialzie () async {
-     await SharedPreferencesManager.init(); // ✅ This makes prefs ready
-    final deviceController = Get.find<DeviceController>();
-  await deviceController.checkDeviceFromApi(); // ✅ stores 'is_registered'
+  //  await DeviceController().checkDeviceFromApi();
+
   }
 
   @override
@@ -75,15 +81,22 @@ class _SmartTravelAppState extends State<SmartTravelApp> {
     ),
         useMaterial3: true, colorSchemeSeed: Color(0xfffa1b1b)),
       getPages: [
-        GetPage(name: '/', page: () => DeviceRegistrationPage()),
-        // GetPage(name: '/', page: () => RenderPage()),
-      
-        GetPage(
-          name: '/location',
-          page: () => const LocationPage(),
-          middlewares: [DeviceCheckMiddleware()],
-        ),
-        GetPage(name: '/register', page: () => const DeviceRegistrationPage()),
+        // GetPage(name: '/', page: () => DeviceRegistrationPage()),
+      GetPage(name: '/', page: () => RenderPage()),
+
+GetPage(
+  name: '/location',
+  page: () => const LocationPage(),
+  middlewares: [NotRegisteredDeviceMiddleware()], // ✅ block if not registered
+),
+
+GetPage(
+  name: '/register',
+  page: () => const DeviceRegistrationPage(),
+  middlewares: [RegisteredDeviceMiddleware()], // ✅ block if already registered
+),
+
+
       ],
     );
   }

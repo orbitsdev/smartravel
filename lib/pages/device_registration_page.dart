@@ -1,9 +1,12 @@
+// 🔄 Updated: device_registration_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smarttravel/components/local_lottie_image.dart';
 import 'package:smarttravel/components/modal.dart';
 import 'package:smarttravel/plugins/getx/controller/device_controller.dart';
 import 'package:smarttravel/plugins/dio/failure.dart';
+import 'package:smarttravel/plugins/sharepreference/shared_preferences_manager.dart';
 
 class DeviceRegistrationPage extends StatefulWidget {
   const DeviceRegistrationPage({Key? key}) : super(key: key);
@@ -13,30 +16,34 @@ class DeviceRegistrationPage extends StatefulWidget {
 }
 
 class _DeviceRegistrationPageState extends State<DeviceRegistrationPage> {
-
   final TextEditingController nameController = TextEditingController();
   final DeviceController deviceController = Get.find<DeviceController>();
+Future<void> handleSubmit() async {
+  final name = nameController.text.trim();
 
-  Future<void> handleSubmit() async {
-    final name = nameController.text.trim();
-
-    if (name.isEmpty) {
-      Modal.showToast(msg: "Name is required to proceed.");
-      return;
-    }
-
-    Modal.showLoading(message: "Registering device...");
-    final result = await deviceController.submitDeviceRegistration(name: name);
-    Modal.hideLoading();
-
-    // result.match(
-    //   (Failure failure) => Modal.errorDialogMessage(failure: failure),
-    //   (success) {
-    //     Modal.showToast(msg: "Welcome, $name!");
-    //     Get.offAllNamed('/location');
-    //   },
-    // );
+  if (name.isEmpty) {
+    Modal.showToast(msg: "Name is required to proceed.");
+    return;
   }
+
+  Modal.showLoading(message: "Registering device...");
+  final result = await deviceController.submitDeviceRegistration(name: name);
+  Modal.hideLoading();
+
+  result.match(
+    (Failure failure) => Modal.errorDialogMessage(failure: failure),
+    (success) {
+      // Update the device registration status
+      deviceController.isRegistered.value = true;
+      print(deviceController.isRegistered.value);
+
+      Modal.showToast(msg: "Welcome, $name!");
+      Get.offAllNamed('/location');
+    },
+  );
+}
+
+
 
   @override
   void initState() {
@@ -129,15 +136,6 @@ class _DeviceRegistrationPageState extends State<DeviceRegistrationPage> {
                   ),
                 ),
               ),
-              // 👇 Logo pinned to the bottom
-              // Padding(
-              //   padding: const EdgeInsets.only(bottom: 16),
-              //   child: Image.asset(
-              //     'assets/images/logo.png',
-              //     width: 80,
-              //     height: 80,
-              //   ),
-              // ),
             ],
           ),
         ),

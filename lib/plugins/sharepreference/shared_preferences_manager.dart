@@ -18,4 +18,13 @@ class SharedPreferencesManager {
   static Future<void> clearAll() async {
     await prefs.clear();
   }
+
+  static Future<void> writeString(String key, String value) async {
+  await prefs.setString(key, value);
+}
+
+static String? readString(String key) {
+  return prefs.getString(key);
+}
+
 }

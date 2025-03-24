@@ -14,6 +14,19 @@ import 'package:smarttravel/plugins/sharepreference/shared_preferences_manager.d
 class DeviceController extends GetxController {
   static DeviceController get controller => Get.find();
 
+   RxBool isRegistered = false.obs;
+
+  // Method to check if the device is registered
+  Future<void> checkDeviceFromApi() async {
+   
+    final result = await ApiService.get('check-device/'); 
+
+    isRegistered.value = result.isRight();  // Update reactive variable
+
+    // Optional: If needed, persist it in SharedPreferences for backup
+    // await SharedPreferencesManager.writeBool('device_is_registered', isRegistered.value);
+  }
+
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   Map<String, dynamic> deviceData = <String, dynamic>{};
   RxBool isSubmitting = false.obs;
@@ -72,24 +85,24 @@ class DeviceController extends GetxController {
     };
   }
 
-  Future<bool> checkDeviceFromApi() async {
-    await getDeviceInfo();
-    final deviceId = deviceData['androidId'];
+//   Future<bool> checkDeviceFromApi() async {
+//   await getDeviceInfo();
+//   final deviceId = deviceData['androidId'];
 
-    if (deviceId == null) return false;
+//   if (deviceId == null) return false;
 
-    final result = await ApiService.get('check-device/$deviceId');
+//   final result = await ApiService.get('check-device/$deviceId');
 
-    final isRegistered = result.isRight();
-    await SharedPreferencesManager.writeBool('is_registered', isRegistered);
+//   final isRegistered = result.isRight();
 
-    return isRegistered;
-  }
+//   await SharedPreferencesManager.writeBool('device_is_registered', isRegistered);
+//   return isRegistered;
+// }
+
 
   /// Handles device registration submission
  
-
-Future<void> submitDeviceRegistration({required String name}) async {
+Future<Either<Failure, bool>> submitDeviceRegistration({required String name}) async {
   isSubmitting.value = true;
 
   try {
@@ -100,7 +113,7 @@ Future<void> submitDeviceRegistration({required String name}) async {
     final position = await getCurrentPosition();
     if (position == null) {
       logger.e("Location permission denied or GPS is disabled.");
-      return;
+      return left(Failure(message: "Location not available"));
     }
 
     // Optional: resolve human-readable location name
@@ -136,21 +149,26 @@ Future<void> submitDeviceRegistration({required String name}) async {
 
     final result = await ApiService.post("location/create.php", payload);
 
-    result.fold(
+    return result.fold(
       (failure) {
         logger.e("Registration failed", error: failure.exception?.message);
+        return left(failure);
       },
       (response) {
         logger.t("Registration success: ${response.data}");
         SharedPreferencesManager.writeBool('is_registered', true);
+        return right(true);
       },
     );
   } catch (e, stack) {
+    final failure = Failure(message: "Unexpected error", exception: null);
     logger.e("Unexpected error during device registration", error: e.toString(), stackTrace: stack);
+    return left(failure);
   } finally {
     isSubmitting.value = false;
   }
 }
+
 
 
 
@@ -170,6 +188,7 @@ Future<Position?> getCurrentPosition() async {
     desiredAccuracy: LocationAccuracy.high,
   );
 }
+
 
 
 }
